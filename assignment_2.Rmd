@@ -1,0 +1,208 @@
+---
+title: "Assignment 2 - Data Analysis using R Programming"
+author: "Group 5"
+date: "2025-11-26"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+```
+
+## 1. Data Loading
+
+```{r load_data}
+# Load the dataset
+df <- read.csv("employee_salary_dataset.csv")
+```
+
+## 2. Structure and Overview
+
+### Print the structure of your dataset
+```{r structure}
+str(df)
+```
+
+### List the variables in your dataset
+```{r variables}
+names(df)
+```
+
+### Print the top 15 rows of your dataset
+```{r top_15}
+head(df, 15)
+```
+
+## 3. User Defined Function
+
+### Write a user defined function using any of the variables from the data set.
+```{r user_function}
+# Function to categorize experience level
+categorize_experience <- function(years) {
+  if (years < 5) {
+    return("Junior")
+  } else if (years >= 5 & years <= 10) {
+    return("Mid-Level")
+  } else {
+    return("Senior")
+  }
+}
+
+# Apply the function to the first few rows to demonstrate
+sapply(head(df$Experience_Years), categorize_experience)
+```
+
+## 4. Data Manipulation and Filtering
+
+### Use data manipulation techniques and filter rows based on any logical criteria
+```{r filter}
+# Filter employees with more than 10 years of experience and are from IT department
+filtered_df <- df %>%
+  filter(Experience_Years > 10 & Department == "IT")
+
+head(filtered_df)
+```
+
+## 5. Reshaping and Joining
+
+### Identify the dependent & independent variables and use reshaping techniques and create a new data frame by joining those variables from your dataset.
+```{r reshape_join}
+# Dependent variable: Monthly_Salary
+# Independent variables: Experience_Years, Age
+
+# Create two separate dataframes to demonstrate joining
+df_salary <- df %>% select(EmployeeID, Monthly_Salary)
+df_details <- df %>% select(EmployeeID, Experience_Years, Age)
+
+# Join them back together
+joined_df <- left_join(df_details, df_salary, by = "EmployeeID")
+
+head(joined_df)
+```
+
+## 6. Data Cleaning
+
+### Remove missing values in your dataset.
+```{r remove_na}
+# Check for missing values
+sum(is.na(df))
+
+# Remove missing values (if any)
+df_clean <- na.omit(df)
+```
+
+### Identify and remove duplicated data in your dataset
+```{r remove_duplicates}
+# Check for duplicates
+sum(duplicated(df_clean))
+
+# Remove duplicates
+df_clean <- df_clean %>% distinct()
+```
+
+## 7. Reordering and Renaming
+
+### Reorder multiple rows in descending order
+```{r reorder}
+# Reorder by Monthly_Salary in descending order
+df_sorted <- df_clean %>% arrange(desc(Monthly_Salary))
+head(df_sorted)
+```
+
+### Rename some of the column names in your dataset
+```{r rename}
+# Rename 'Monthly_Salary' to 'Salary' and 'Experience_Years' to 'Experience'
+df_renamed <- df_sorted %>%
+  rename(Salary = Monthly_Salary,
+         Experience = Experience_Years)
+
+names(df_renamed)
+```
+
+## 8. New Variables
+
+### Add new variables in your data frame by using a mathematical function
+```{r new_variable}
+# Add a new variable 'Annual_Salary' (Monthly_Salary * 12)
+df_final <- df_renamed %>%
+  mutate(Annual_Salary = Salary * 12)
+
+head(df_final)
+```
+
+## 9. Training Set
+
+### Create a training set using random number generator engine.
+```{r training_set}
+set.seed(123) # Set seed for reproducibility
+sample_index <- sample(1:nrow(df_final), 0.7 * nrow(df_final))
+training_set <- df_final[sample_index, ]
+testing_set <- df_final[-sample_index, ]
+
+dim(training_set)
+```
+
+## 10. Summary Statistics
+
+### Print the summary statistics of your dataset
+```{r summary}
+summary(df_final)
+```
+
+### Use any of the numerical variables from the dataset and perform the following statistical functions
+```{r statistics}
+# Using 'Salary' variable
+salary_mean <- mean(df_final$Salary)
+salary_median <- median(df_final$Salary)
+salary_range <- range(df_final$Salary)
+
+# Calculate Mode
+get_mode <- function(v) {
+   uniqv <- unique(v)
+   uniqv[which.max(tabulate(match(v, uniqv)))]
+}
+salary_mode <- get_mode(df_final$Salary)
+
+cat("Mean Salary:", salary_mean, "\n")
+cat("Median Salary:", salary_median, "\n")
+cat("Mode Salary:", salary_mode, "\n")
+cat("Range Salary:", salary_range, "\n")
+```
+
+## 11. Visualization
+
+### Plot a scatter plot for any 2 variables in your dataset
+```{r scatter_plot}
+ggplot(df_final, aes(x = Experience, y = Salary)) +
+  geom_point(color = "blue") +
+  labs(title = "Scatter Plot of Salary vs Experience",
+       x = "Experience (Years)",
+       y = "Monthly Salary") +
+  theme_minimal()
+```
+
+### Plot a bar plot for any 2 variables in your dataset
+```{r bar_plot}
+# Average salary by Department
+avg_salary_dept <- df_final %>%
+  group_by(Department) %>%
+  summarise(Avg_Salary = mean(Salary))
+
+ggplot(avg_salary_dept, aes(x = Department, y = Avg_Salary, fill = Department)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Average Salary by Department",
+       x = "Department",
+       y = "Average Salary") +
+  theme_minimal()
+```
+
+## 12. Correlation
+
+### Find the correlation between any 2 variables by applying Pearson correlation
+```{r correlation}
+correlation <- cor(df_final$Experience, df_final$Salary, method = "pearson")
+cat("Pearson correlation between Experience and Salary:", correlation, "\n")
+```
