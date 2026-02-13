@@ -29,7 +29,7 @@ This project uses **statistical analysis in R** to isolate and quantify the spec
 
 ---
 
-## 📊 What Was Done — Step by Step
+## 📊 Methodology & Approach
 
 ### Phase 1: Data Wrangling & Quality Assurance
 
